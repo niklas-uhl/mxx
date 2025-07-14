@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.6)
+cmake_minimum_required(VERSION 3.10)
 
 # project settings
 project(mxx LANGUAGES CXX)
@@ -20,12 +20,7 @@ target_include_directories(mxx INTERFACE
 
 #### load MPI
 find_package(MPI REQUIRED)
-if (MPI_FOUND)
-    target_link_libraries(mxx INTERFACE ${MPI_CXX_LIBRARIES})
-    target_include_directories(mxx INTERFACE ${MPI_CXX_INCLUDE_PATH})
-else (MPI_FOUND)
-    message(SEND_ERROR "This application cannot compile without MPI")
-endif (MPI_FOUND)
+target_link_libraries(mxx INTERFACE MPI::MPI_CXX)
 
 #### cxx-prettyprint
 target_include_directories(mxx INTERFACE
