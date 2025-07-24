@@ -1539,7 +1539,7 @@ void all2all_func(std::vector<T>& msgs, Func target_func, const mxx::comm& comm 
     msgs.resize(recv_size);
 
     // all2all
-    all2allv(&send_buffer[0], send_counts, &msgs[0], recv_counts, comm);
+    all2allv(send_buffer.data(), send_counts, msgs.data(), recv_counts, comm);
     // done, result is returned in vector of input messages
 }
 
