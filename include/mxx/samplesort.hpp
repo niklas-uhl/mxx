@@ -76,14 +76,16 @@ bool is_sorted(_Iterator begin, _Iterator end, _Compare comp, const mxx::comm& c
     if (comm.size() == 1)
         return sorted;
 
-    // compare if last element on left processor is not bigger than first
-    // element on mine
-    value_type left_el = mxx::right_shift(*(end-1), comm);
+    comm.with_subset(begin != end , [&](const mxx::comm &comm) {
+      // compare if last element on left processor is not bigger than first
+      // element on mine
+      value_type left_el = mxx::right_shift(*(end-1), comm);
 
-    // check if sorted with respect to neighbors
-    if (comm.rank() > 0) {
+      // check if sorted with respect to neighbors
+      if (comm.rank() > 0) {
         sorted = sorted && !comp(*begin, left_el);
-    }
+      }
+    });
 
     // now check that this condition is true for all processes
     return mxx::all_of(sorted, comm);
