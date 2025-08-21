@@ -115,12 +115,11 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
-# build mxx enabled gtest module
-add_subdirectory(gtest)
-
 # build tests
 if(MXX_BUILD_TESTS)
-add_subdirectory(test)
+  # build mxx enabled gtest module
+  add_subdirectory(gtest)
+  add_subdirectory(test)
 endif(MXX_BUILD_TESTS)
 
 # build utils and benchmarks

@@ -9,5 +9,5 @@ project(mxx-gtest)
 ######################
 
 add_library(mxx-gtest-main mxx_gtest_main.cpp gtest-all.cc)
-target_link_libraries(mxx-gtest-main PUBLIC mxx ${MPI_LIBRARIES} pthread)
+target_link_libraries(mxx-gtest-main PUBLIC mxx_mxx ${MPI_LIBRARIES} pthread)
 target_include_directories(mxx-gtest-main PUBLIC "../")
