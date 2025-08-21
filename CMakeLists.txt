@@ -13,6 +13,7 @@ OPTION(MXX_FAKE_BIG_MPI "Enable a fake, tiny bigMPI threshold (used during CI te
 #### add mxx as header library
 add_library(mxx INTERFACE)
 target_compile_features(mxx INTERFACE cxx_std_11)
+add_library(mxx::mxx ALIAS mxx)
 target_include_directories(mxx INTERFACE
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>)
