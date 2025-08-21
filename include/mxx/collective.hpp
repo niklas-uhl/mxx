@@ -124,7 +124,7 @@ void scatter(const T* msgs, size_t size, T* out, int root, const mxx::comm& comm
 template <typename T>
 std::vector<T> scatter(const T* msgs, size_t size, int root, const mxx::comm& comm = mxx::comm()) {
     std::vector<T> result(size);
-    scatter(msgs, size, &result[0], root, comm);
+    scatter(msgs, size, result.data(), root, comm);
     return result;
 }
 
@@ -148,7 +148,7 @@ std::vector<T> scatter(const T* msgs, size_t size, int root, const mxx::comm& co
 template <typename T>
 std::vector<T> scatter(const std::vector<T>& msgs, size_t size, int root, const mxx::comm& comm = mxx::comm()) {
     MXX_ASSERT(comm.rank() != root || msgs.size() == size*comm.size());
-    std::vector<T> result = scatter(&msgs[0], size, root, comm);
+    std::vector<T> result = scatter(msgs.data(), size, root, comm);
     return result;
 }
 
@@ -170,7 +170,7 @@ std::vector<T> scatter(const std::vector<T>& msgs, size_t size, int root, const 
 template <typename T>
 std::vector<T> scatter_recv(size_t size, int root, const mxx::comm& comm = mxx::comm()) {
     std::vector<T> result(size);
-    scatter((const T*)nullptr, size, &result[0], root, comm);
+    scatter((const T*)nullptr, size, result.data(), root, comm);
     return result;
 }
 
@@ -253,7 +253,7 @@ template <typename T>
 T scatter_one(const std::vector<T>& msgs, int root, const mxx::comm& comm = mxx::comm()) {
     MXX_ASSERT(comm.rank() != root || msgs.size() == static_cast<size_t>(comm.size()));
     T result;
-    scatter(&msgs[0], 1, &result, root, comm);
+    scatter(msgs.data(), 1, &result, root, comm);
     return result;
 }
 
@@ -335,7 +335,7 @@ void scatterv(const T* msgs, const std::vector<size_t>& sizes, T* out, size_t re
             std::vector<int> send_counts(comm.size());
             std::copy(sizes.begin(), sizes.end(), send_counts.begin());
             std::vector<int> displs = impl::get_displacements(send_counts);
-            MPI_Scatterv(const_cast<T*>(msgs), &send_counts[0], &displs[0], dt.type(),
+            MPI_Scatterv(const_cast<T*>(msgs), send_counts.data(), displs.data(), dt.type(),
                          out, irecv_size, dt.type(), root, comm);
         } else {
             MPI_Scatterv(NULL, NULL, NULL, MPI_DATATYPE_NULL,
@@ -367,7 +367,7 @@ template <typename T>
 std::vector<T> scatterv(const T* msgs, const std::vector<size_t>& sizes, size_t recv_size, int root, const mxx::comm& comm = mxx::comm()) {
     MXX_ASSERT(root != comm.rank() || sizes.size() == static_cast<size_t>(comm.size()));
     std::vector<T> result(recv_size);
-    scatterv(msgs, sizes, &result[0], recv_size, root, comm);
+    scatterv(msgs, sizes, result.data(), recv_size, root, comm);
     return result;
 }
 
@@ -397,7 +397,7 @@ template <typename T>
 std::vector<T> scatterv(const std::vector<T>& msgs, const std::vector<size_t>& sizes, size_t recv_size, int root, const mxx::comm& comm = mxx::comm()) {
     MXX_ASSERT(root != comm.rank() || sizes.size() == static_cast<size_t>(comm.size()));
     std::vector<T> result(recv_size);
-    scatterv(&msgs[0], sizes, &result[0], recv_size, root, comm);
+    scatterv(msgs.data(), sizes, result.data(), recv_size, root, comm);
     return result;
 }
 
@@ -458,7 +458,7 @@ template <typename T>
 std::vector<T> scatterv(const std::vector<T>& msgs, const std::vector<size_t>& sizes, int root, const mxx::comm& comm = mxx::comm()) {
     MXX_ASSERT(root != comm.rank() || sizes.size() == static_cast<size_t>(comm.size()));
     size_t recv_size = scatter_one<size_t>(sizes, root, comm);
-    std::vector<T> result = scatterv(&msgs[0], sizes, recv_size, root, comm);
+    std::vector<T> result = scatterv(msgs.data(), sizes, recv_size, root, comm);
     return result;
 }
 
@@ -605,7 +605,7 @@ std::vector<T> gather(const T* data, size_t size, int root, const mxx::comm& com
     std::vector<T> result;
     if (comm.rank() == root)
         result.resize(size*comm.size());
-    gather(data, size, &result[0], root, comm);
+    gather(data, size, result.data(), root, comm);
     return result;
 }
 
@@ -630,7 +630,7 @@ std::vector<T> gather(const T* data, size_t size, int root, const mxx::comm& com
  */
 template <typename T>
 std::vector<T> gather(const std::vector<T>& data, int root, const mxx::comm& comm = mxx::comm()) {
-    return gather(&data[0], data.size(), root, comm);
+    return gather(data.data(), data.size(), root, comm);
 }
 
 /**
@@ -712,7 +712,7 @@ void gatherv(const T* data, size_t size, T* out, const std::vector<size_t>& recv
             std::copy(recv_sizes.begin(), recv_sizes.end(), counts.begin());
             std::vector<int> displs = impl::get_displacements(counts);
             MPI_Gatherv(const_cast<T*>(data), size, dt.type(),
-                        out, &counts[0], &displs[0], dt.type(), root, comm);
+                        out, counts.data(), displs.data(), dt.type(), root, comm);
         } else {
             MPI_Gatherv(const_cast<T*>(data), size, dt.type(),
                         NULL, NULL, NULL, dt.type(), root, comm);
@@ -755,7 +755,7 @@ std::vector<T> gatherv(const T* data, size_t size, const std::vector<size_t>& re
     size_t total_size = std::accumulate(recv_sizes.begin(), recv_sizes.end(), static_cast<size_t>(0));
     if (comm.rank() == root)
         result.resize(total_size);
-    gatherv(data, size, &result[0], recv_sizes, root, comm);
+    gatherv(data, size, result.data(), recv_sizes, root, comm);
     return result;
 }
 
@@ -790,7 +790,7 @@ std::vector<T> gatherv(const T* data, size_t size, const std::vector<size_t>& re
  */
 template <typename T>
 std::vector<T> gatherv(const std::vector<T>& data, const std::vector<size_t>& recv_sizes, int root, const mxx::comm& comm = mxx::comm()) {
-    return gatherv(&data[0], data.size(), recv_sizes, root, comm);
+    return gatherv(data.data(), data.size(), recv_sizes, root, comm);
 }
 
 /**
@@ -847,7 +847,7 @@ std::vector<T> gatherv(const T* data, size_t size, int root, const mxx::comm& co
  */
 template <typename T>
 std::vector<T> gatherv(const std::vector<T>& data, int root, const mxx::comm& comm = mxx::comm()) {
-    return gatherv(&data[0], data.size(), root, comm);
+    return gatherv(data.data(), data.size(), root, comm);
 }
 
 
@@ -912,7 +912,7 @@ template <typename T>
 std::vector<T> allgather(const T* data, size_t size, const mxx::comm& comm = mxx::comm()) {
     std::vector<T> result;
     result.resize(size*comm.size());
-    allgather(data, size, &result[0], comm);
+    allgather(data, size, result.data(), comm);
     return result;
 }
 
@@ -932,7 +932,7 @@ std::vector<T> allgather(const T* data, size_t size, const mxx::comm& comm = mxx
  */
 template <typename T>
 std::vector<T> allgather(const std::vector<T>& data, const mxx::comm& comm = mxx::comm()) {
-    return allgather(&data[0], data.size(), comm);
+    return allgather(data.data(), data.size(), comm);
 }
 
 /**
@@ -1004,7 +1004,7 @@ void allgatherv(const T* data, size_t size, T* out, const std::vector<size_t>& r
         std::copy(recv_sizes.begin(), recv_sizes.end(), counts.begin());
         std::vector<int> displs = impl::get_displacements(counts);
         MPI_Allgatherv(const_cast<T*>(data), size, dt.type(),
-                    out, &counts[0], &displs[0], dt.type(), comm);
+                       out, counts.data(), displs.data(), dt.type(), comm);
     }
 }
 
@@ -1038,7 +1038,7 @@ template <typename T>
 std::vector<T> allgatherv(const T* data, size_t size, const std::vector<size_t>& recv_sizes, const mxx::comm& comm = mxx::comm()) {
     size_t total_size = std::accumulate(recv_sizes.begin(), recv_sizes.end(), static_cast<size_t>(0));
     std::vector<T> result(total_size);
-    allgatherv(data, size, &result[0], recv_sizes, comm);
+    allgatherv(data, size, result.data(), recv_sizes, comm);
     return result;
 }
 
@@ -1070,7 +1070,7 @@ std::vector<T> allgatherv(const T* data, size_t size, const std::vector<size_t>&
  */
 template <typename T>
 std::vector<T> allgatherv(const std::vector<T>& data, const std::vector<size_t>& recv_sizes, const mxx::comm& comm = mxx::comm()) {
-    return allgatherv(&data[0], data.size(), recv_sizes, comm);
+    return allgatherv(data.data(), data.size(), recv_sizes, comm);
 }
 
 /**
@@ -1119,7 +1119,7 @@ std::vector<T> allgatherv(const T* data, size_t size, const mxx::comm& comm = mx
  */
 template <typename T>
 std::vector<T> allgatherv(const std::vector<T>& data, const mxx::comm& comm = mxx::comm()) {
-    return allgatherv(&data[0], data.size(), comm);
+    return allgatherv(data.data(), data.size(), comm);
 }
 
 
@@ -1174,7 +1174,7 @@ void all2all(const T* msgs, size_t size, T* out, const mxx::comm& comm = mxx::co
 template <typename T>
 std::vector<T> all2all(const T* msgs, size_t size, const mxx::comm& comm = mxx::comm()) {
     std::vector<T> result(size*comm.size());
-    all2all(msgs, size, &result[0], comm);
+    all2all(msgs, size, result.data(), comm);
     return result;
 }
 
@@ -1201,7 +1201,7 @@ template <typename T>
 std::vector<T> all2all(const std::vector<T>& msgs, const mxx::comm& comm = mxx::comm()) {
     MXX_ASSERT((int)msgs.size() % comm.size() == 0);
     size_t size = msgs.size() / comm.size();
-    std::vector<T> result = all2all(&msgs[0], size, comm);
+    std::vector<T> result = all2all(msgs.data(), size, comm);
     return result;
 }
 
@@ -1268,8 +1268,8 @@ void all2allv(const T* msgs, const std::vector<size_t>& send_sizes, const std::v
         comm.barrier();
         auto start = std::chrono::steady_clock::now();
 #endif
-        MPI_Alltoallv(const_cast<T*>(msgs), &send_counts[0], &send_dis[0], dt.type(),
-                      out, &recv_counts[0], &recv_dis[0], dt.type(), comm);
+        MPI_Alltoallv(const_cast<T*>(msgs), send_counts.data(), send_dis.data(), dt.type(),
+                      out, recv_counts.data(), recv_dis.data(), dt.type(), comm);
 #if MXX_BENCHMARK_ALL2ALL
         auto end = std::chrono::steady_clock::now();
         // time in microseconds
@@ -1348,12 +1348,12 @@ void char_all2allv(const T* in, const std::vector<size_t>& send_counts, T* out, 
     std::vector<T> recv_buffer(aligned_recv_size);
 
     // call all2allv with custom displacements
-    mxx::all2allv(in, counts, displs, &recv_buffer[0], aligned_recv_counts, aligned_recv_displs, c);
+    mxx::all2allv(in, counts, displs, recv_buffer.data(), aligned_recv_counts, aligned_recv_displs, c);
 
     // fix offsets and copy into real recv buffer
     T* o = out;
     for (int i = 0; i < c.size(); ++i) {
-        const T* it = &recv_buffer[0]+aligned_recv_displs[i]+recv_offsets[i];
+        const T* it = recv_buffer.data()+aligned_recv_displs[i]+recv_offsets[i];
         std::copy(it, it + recv_counts[i], o);
         o += recv_counts[i];
     }
@@ -1426,7 +1426,7 @@ template <typename T>
 std::vector<T> all2allv(const T* msgs, const std::vector<size_t>& send_sizes, const std::vector<size_t>& recv_sizes, const mxx::comm& comm = mxx::comm()) {
     size_t recv_size = std::accumulate(recv_sizes.begin(), recv_sizes.end(), static_cast<size_t>(0));
     std::vector<T> result(recv_size);
-    all2allv(msgs, send_sizes, &result[0], recv_sizes, comm);
+    all2allv(msgs, send_sizes, result.data(), recv_sizes, comm);
     return result;
 }
 
@@ -1452,7 +1452,7 @@ std::vector<T> all2allv(const T* msgs, const std::vector<size_t>& send_sizes, co
 template <typename T>
 std::vector<T> all2allv(const std::vector<T>& msgs, const std::vector<size_t>& send_sizes, const std::vector<size_t>& recv_sizes, const mxx::comm& comm = mxx::comm()) {
     MXX_ASSERT(msgs.size() == std::accumulate(send_sizes.begin(), send_sizes.end(), static_cast<size_t>(0)));
-    return all2allv(&msgs[0], send_sizes, recv_sizes, comm);
+    return all2allv(msgs.data(), send_sizes, recv_sizes, comm);
 }
 
 // unknown receive size:
@@ -1504,7 +1504,7 @@ std::vector<T> all2allv(const T* msgs, const std::vector<size_t>& send_sizes, co
  */
 template <typename T>
 std::vector<T> all2allv(const std::vector<T>& msgs, const std::vector<size_t>& send_sizes, const mxx::comm& comm = mxx::comm()) {
-    return all2allv(&msgs[0], send_sizes, comm);
+    return all2allv(msgs.data(), send_sizes, comm);
 }
 
 // TODO: add tests and documentation
@@ -1539,7 +1539,7 @@ void all2all_func(std::vector<T>& msgs, Func target_func, const mxx::comm& comm 
     msgs.resize(recv_size);
 
     // all2all
-    all2allv(&send_buffer[0], send_counts, &msgs[0], recv_counts, comm);
+    all2allv(send_buffer.data(), send_counts, msgs.data(), recv_counts, comm);
     // done, result is returned in vector of input messages
 }
 

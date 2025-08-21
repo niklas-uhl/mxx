@@ -333,7 +333,7 @@ inline std::vector<T> reduce(const T* in, size_t n, int root, Func func, const m
     std::vector<T> result;
     if (comm.rank() == root)
         result.resize(n);
-    reduce(in, n, &result[0], root, func, comm);
+    reduce(in, n, result.data(), root, func, comm);
     return result;
 }
 
@@ -344,7 +344,7 @@ inline std::vector<T> reduce(const T* in, size_t n, int root, const mxx::comm& c
 
 template <typename T, typename Func>
 inline std::vector<T> reduce(const std::vector<T>& in, int root, Func func, const mxx::comm& comm = mxx::comm()) {
-    return reduce(&in[0], in.size(), root, func, comm);
+    return reduce(in.data(), in.size(), root, func, comm);
 }
 
 template <typename T>
@@ -386,7 +386,7 @@ inline void allreduce(const T* in, size_t n, T* out, const mxx::comm& comm = mxx
 template <typename T, typename Func>
 inline std::vector<T> allreduce(const T* in, size_t n, Func func, const mxx::comm& comm = mxx::comm()) {
     std::vector<T> result(n);
-    allreduce(in, n, &result[0], func, comm);
+    allreduce(in, n, result.data(), func, comm);
     return result;
 }
 
@@ -397,7 +397,7 @@ inline std::vector<T> allreduce(const T* in, size_t n, const mxx::comm& comm = m
 
 template <typename T, typename Func>
 inline std::vector<T> allreduce(const std::vector<T>& in, Func func, const mxx::comm& comm = mxx::comm()) {
-    return allreduce(&in[0], in.size(), func, comm);
+  return allreduce(in.data(), in.size(), func, comm);
 }
 
 template <typename T>
@@ -624,12 +624,12 @@ inline void scan_vec(const T* in, size_t n, T* out, Func func, const mxx::comm& 
 template <typename T, typename Func>
 inline std::vector<T> scan_vec(const T* in, size_t n, Func func, const mxx::comm& comm = mxx::comm()) {
     std::vector<T> result(n);
-    scan_vec(in, n, &result[0], func, comm);
+    scan_vec(in, n, result.data(), func, comm);
     return result;
 }
 template <typename T, typename Func>
 inline std::vector<T> scan_vec(const std::vector<T>& x, Func func, const mxx::comm& comm = mxx::comm()) {
-    return scan_vec(&x[0], x.size(), func, comm);
+    return scan_vec(x.data(), x.size(), func, comm);
 }
 
 // single element per processor
@@ -850,12 +850,12 @@ inline void exscan_vec(const T* in, size_t n, T* out, Func func, const mxx::comm
 template <typename T, typename Func>
 inline std::vector<T> exscan_vec(const T* in, size_t n, Func func, const mxx::comm& comm = mxx::comm()) {
     std::vector<T> result(n, T());
-    exscan_vec(in, n, &result[0], func, comm);
+    exscan_vec(in, n, result.data(), func, comm);
     return result;
 }
 template <typename T, typename Func>
 inline std::vector<T> exscan_vec(const std::vector<T>& x, Func func, const mxx::comm& comm = mxx::comm()) {
-    return exscan_vec(&x[0], x.size(), func, comm);
+    return exscan_vec(x.data(), x.size(), func, comm);
 }
 
 
