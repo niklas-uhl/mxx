@@ -11,20 +11,20 @@ OPTION(MXX_TRAVIS "Travis build (turns on tests and coverage)" OFF)
 OPTION(MXX_FAKE_BIG_MPI "Enable a fake, tiny bigMPI threshold (used during CI testing)" OFF)
 
 #### add mxx as header library
-add_library(mxx INTERFACE)
-target_compile_features(mxx INTERFACE cxx_std_11)
-add_library(mxx::mxx ALIAS mxx)
-target_include_directories(mxx INTERFACE
+add_library(mxx_mxx INTERFACE)
+target_compile_features(mxx_mxx INTERFACE cxx_std_11)
+add_library(mxx::mxx ALIAS mxx_mxx)
+target_include_directories(mxx_mxx INTERFACE
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>)
 
 
 #### load MPI
 find_package(MPI REQUIRED)
-target_link_libraries(mxx INTERFACE MPI::MPI_CXX)
+target_link_libraries(mxx_mxx INTERFACE MPI::MPI_CXX)
 
 #### cxx-prettyprint
-target_include_directories(mxx INTERFACE
+target_include_directories(mxx_mxx INTERFACE
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/ext>
   $<INSTALL_INTERFACE:include/mxx/ext>)
 
@@ -35,7 +35,7 @@ install(DIRECTORY ext/ DESTINATION include/mxx FILES_MATCHING PATTERN "*.hpp")
 
 include(CMakePackageConfigHelpers)
 
-install(TARGETS mxx
+install(TARGETS mxx_mxx
         EXPORT mxxTargets
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib
